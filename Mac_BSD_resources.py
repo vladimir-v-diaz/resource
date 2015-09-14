@@ -61,7 +61,7 @@ def measure_resources():
 
   # Next, get physical memory (RAM)
   phys_mem = "unable to find size of physical memory"
-  pipe = getShellPipe("sysctl hw.physmem")
+  pipe = getShellPipe("sysctl hw.memsize")
   for line in pipe:
     line_s = line.split(" ")
     if len(line_s) > 1:
