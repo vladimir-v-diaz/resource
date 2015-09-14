@@ -130,8 +130,9 @@ def measure_resources():
       events = int(line_s[1])
   pipe.close()
 
-  # Get the max number of sockets
-  maxsockets = "unable to find max number of sockets"
+  # Get the max number of sockets, or use a sane default on machines where 
+  # this sysctl key is missing (SeattleTestbed/resource#5).
+  maxsockets = 512
   pipe = getShellPipe("sysctl kern.ipc.maxsockets")
   for line in pipe:
     line_s = line.split(" ")
