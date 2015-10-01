@@ -59,9 +59,11 @@ def measure_resources():
       num_cpu = int(line_s[1])
   pipe.close()
 
-  # Next, get physical memory (RAM)
+  # Next, get the machine's total physical memory (RAM) in bytes.
+  # The expected output of the call to `sysctl` looks like this:
+  # "hw.memsize: 8589934592"
   phys_mem = "unable to find size of physical memory"
-  pipe = getShellPipe("sysctl hw.physmem")
+  pipe = getShellPipe("sysctl hw.memsize")
   for line in pipe:
     line_s = line.split(" ")
     if len(line_s) > 1:
