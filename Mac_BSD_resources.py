@@ -10,53 +10,57 @@
     Modified by Steven Portzer
 
   <Purpose>
-    Runs ons a Mac or BSD system to benchmark important resources.
+    Runs on a Mac or BSD system to benchmark important resources.
 
-<Return value notes>
-  The dictionary returned by measure_resources() is used by
-  benchmark_resources.py and contains a value for every system resource.
-  If the system resource is successfully measured, then the measured value
-  of that resource is returned as an integer. If a test fails, then a
-  string describing the failure is returned for that resource. If the
-  resource is not currently being measured, then None is returned.
+  <Return value notes>
+    The dictionary returned by measure_resources() is used by
+    benchmark_resources.py and contains a value for every system resource.  If
+    the system resource is successfully measured, then the measured value of
+    that resource is returned as an integer. If a test fails, then a string
+    describing the failure is returned for that resource. If the resource is
+    not currently being measured, then None is returned.
 
-  Formerly, None was returned for both failed and unimplemented tests, but
-  this made it impossible to determine whether a benchmark had actually
-  failed or if it was simply not being measured.
+    Formerly, None was returned for both failed and unimplemented tests, but
+    this made it impossible to determine whether a benchmark had actually
+    failed or if it was simply not being measured.
     
-<Resource events>
-  WARNING the 'events' resource is hardcoded to a value of 500
-  
-  The 'events' resource has proven very difficult to measure across the
-  different operating systems, and on some it is infeasible to measure.
-  The decision has been made to take 500 events for the node
-  
-  see benchmark_resources for more information.
+  <Resource events>
+    WARNING: the 'events' resource is hardcoded to a value of 500.
+    
+    The 'events' resource has proven very difficult to measure across the
+    different operating systems, and on some it is infeasible to measure.  The
+    decision has been made to take 500 events for the node.
+    
+    See 'benchmark_resources' for more information.
   
 """
 
 
 import subprocess
 import re
-#import bandwidth
 import measure_random
 import measuredisk
 
+
 def getShellPipe(cmd):
-    return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+  return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+
+
 
 def measure_resources():
-    
   # First, get number of CPUs
   # SP: None is now reserved for unimplemented tests, and to differentiate
   # failed tests we return a string describing the error. At least in theory
   # this makes it easier to figure out what occurred.
   num_cpu = "unable to find number of CPUs"
   pipe = getShellPipe("sysctl hw.ncpu")
+  
   for line in pipe:
     line_s = line.split(" ")
+    
     if len(line_s) > 1:
       num_cpu = int(line_s[1])
+  
   pipe.close()
 
   # Next, get the machine's total physical memory (RAM) in bytes.
@@ -64,48 +68,22 @@ def measure_resources():
   # "hw.memsize: 8589934592"
   phys_mem = "unable to find size of physical memory"
   pipe = getShellPipe("sysctl hw.memsize")
+  
   for line in pipe:
     line_s = line.split(" ")
+    
     if len(line_s) > 1:
       phys_mem = int(line_s[1])
+  
   pipe.close()
 
-  """ 
-  Anthony - this gives an answer much larger than what 
-  can really be achieved. Rewriting to use ulimit instead.
-  
-  # Get max files open, defaulting to 1000
-  # Make sure that 10% of the total system
-  # is not more than the per process limit
-  files_open = 1000
-  files_open_per_proc = False
-  files_open_total = False
-  pipe = getShellPipe("sysctl kern.maxfiles")
-  for line in pipe:
-    line_s = line.split(" ")
-    if len(line_s) > 1:
-      files_open_total = int(line_s[1])
-  pipe.close()
-  pipe = getShellPipe("sysctl kern.maxfilesperproc")
-  for line in pipe:
-    line_s = line.split(" ")
-    if len(line_s) > 1:
-      files_open_per_proc = int(line_s[1])
-  pipe.close()
-  
-  if files_open_per_proc and files_open_total:
-    files_open = min(files_open_per_proc * 10, files_open_total)
-  elif files_open_per_proc:
-    files_open = 10 * files_open_per_proc
-  elif files_open_total:
-    files_open = files_open_total
-  """
   # The ulimit command should only return a single value
   # for the max number of files open at a single time.
   pipe = getShellPipe("ulimit -n")
   for line in pipe:
     try:
       files_open = int(line)
+    
     except ValueError:
       files_open = "bad value for max number of open files: " + str(line)
 
@@ -114,18 +92,22 @@ def measure_resources():
   disk_space = "unable to find hard drive size"
   pipe = getShellPipe("df -k .")
   seenFirstLine = False
+  
   for line in pipe:
     if seenFirstLine:  
       line_s = re.split("\\s*", line)
       if len(line_s) >= 6 and line:
         disk_space = (int(line_s[3])) * 1024
+    
     else:
       seenFirstLine = True
+  
   pipe.close()
 
   # Get the max number of processes
   events = "unable to find max number of processes"
   pipe = getShellPipe("sysctl kern.maxprocperuid")
+  
   for line in pipe:
     line_s = line.split(" ")
     if len(line_s) > 1:
@@ -145,17 +127,11 @@ def measure_resources():
   if not isinstance(maxsockets, basestring):
     insocket = maxsockets / 2
     outsocket = maxsockets / 2
+  
   else:
     insocket = maxsockets
     outsocket = maxsockets
 
-  # Get the available bandwidth, defaulting to 100000
-  """my_bandwidth = 100000
-  server_ip = "128.208.1.137"
-  try:
-    my_bandwidth = bandwidth.get_bandwidth(server_ip)
-  except:
-    pass"""
 
   # SP: Measure random number generation rate, should work on all systems now
   try:
@@ -167,6 +143,7 @@ def measure_resources():
   # Measure the disk read write rate
   try:
     filewrite, fileread = measuredisk.main()
+  
   except Exception, e:
     filewrite, fileread = str(e), str(e)
 
@@ -183,11 +160,9 @@ def measure_resources():
   resource_dict["random"] = random_max
   resource_dict["filewrite"] = filewrite
   resource_dict["fileread"] = fileread
-  #print "resource netsend", my_bandwidth
-  #print "resource netreceive", my_bandwidth
   
-  # These resources are not measure in this script so a None
-  # value is used to indicate it was not measured. 
+  # These resources are not measure in this script so a None value is used to
+  # indicate it was not measured. 
   resource_dict["netrecv"] = None
   resource_dict["netsend"] = None
   resource_dict["lograte"] = None
