@@ -1,37 +1,37 @@
 """
-  <Program Name>
-    Mac_BSD_resources.py
+<Program Name>
+  Mac_BSD_resources.py
 
-  <Started On>
-    January 2009
+<Started On>
+  January 2009
 
-  <Author>
-    Carter Butaud
-    Modified by Steven Portzer
+<Author>
+  Carter Butaud
+  Modified by Steven Portzer
 
-  <Purpose>
-    Runs on a Mac or BSD system to benchmark important resources.
+<Purpose>
+  Runs on a Mac or BSD system to benchmark important resources.
 
-  <Return value notes>
-    The dictionary returned by measure_resources() is used by
-    benchmark_resources.py and contains a value for every system resource.  If
-    the system resource is successfully measured, then the measured value of
-    that resource is returned as an integer. If a test fails, then a string
-    describing the failure is returned for that resource. If the resource is
-    not currently being measured, then None is returned.
+<Return value notes>
+  The dictionary returned by measure_resources() is used by
+  benchmark_resources.py and contains a value for every system resource.  If
+  the system resource is successfully measured, then the measured value of
+  that resource is returned as an integer. If a test fails, then a string
+  describing the failure is returned for that resource. If the resource is
+  not currently being measured, then None is returned.
 
-    Formerly, None was returned for both failed and unimplemented tests, but
-    this made it impossible to determine whether a benchmark had actually
-    failed or if it was simply not being measured.
-    
-  <Resource events>
-    WARNING: the 'events' resource is hardcoded to a value of 500.
-    
-    The 'events' resource has proven very difficult to measure across the
-    different operating systems, and on some it is infeasible to measure.  The
-    decision has been made to take 500 events for the node.
-    
-    See 'benchmark_resources' for more information.
+  Formerly, None was returned for both failed and unimplemented tests, but
+  this made it impossible to determine whether a benchmark had actually
+  failed or if it was simply not being measured.
+  
+<Resource events>
+  WARNING: the 'events' resource is hardcoded to a value of 500.
+  
+  The 'events' resource has proven very difficult to measure across the
+  different operating systems, and on some it is infeasible to measure.  The
+  decision has been made to take 500 events for the node.
+  
+  See 'benchmark_resources' for more information.
   
 """
 
